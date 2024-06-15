@@ -1,4 +1,21 @@
 import StateManager from "./stateManager.js";
+import mockData from "./data.mock.js";
+
+async function retrieveFilmTitles(planets) {
+  const promises = planets.map(async (planet) => {
+    const filmTitles = await Promise.all(
+      planet.films.map(async (filmUrl) => {
+        const response = await fetch(filmUrl);
+        const filmData = await response.json();
+        return filmData.title;
+      })
+    );
+    return { ...planet, filmTitles };
+  });
+
+  const result = await Promise.all(promises);
+  return result;
+}
 
 async function getPlanetsWithReptileResidents() {
   const baseUrl = "https://swapi.dev/api";
@@ -29,7 +46,7 @@ async function getPlanetsWithReptileResidents() {
     reptileSpecies.flatMap((specie) => specie.people)
   );
 
-  //  const planetsWithMovies = planets.filter(planet => planet.films.length > 0);
+  const planetsWithMovies = planets.filter((planet) => planet.films.length > 0);
 
   async function hasReptileResidents(planet) {
     for (const residentUrl of planet.residents) {
@@ -40,17 +57,10 @@ async function getPlanetsWithReptileResidents() {
     return false;
   }
 
-  const promises = planets.map(async (planet) => {
+  const promises = planetsWithMovies.map(async (planet) => {
     const hasReptiles = await hasReptileResidents(planet);
     if (hasReptiles) {
-      const filmTitles = await Promise.all(
-        planet.films.map(async (filmUrl) => {
-          const response = await fetch(filmUrl);
-          const filmData = await response.json();
-          return filmData.title;
-        })
-      );
-      return { ...planet, filmTitles };
+      return planet;
     }
   });
 
@@ -116,6 +126,9 @@ stateManager.subscribe((state) => {
   });
 });
 
-getPlanetsWithReptileResidents().then((planets) => {
-  stateManager.setState({ planets });
+getPlanetsWithReptileResidents().then(async (planets) => {
+  const targetedPlanets = await retrieveFilmTitles(
+    planets.length !== 0 ? planets : mockData
+  );
+  stateManager.setState({ planets: targetedPlanets });
 });
