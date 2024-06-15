@@ -1,3 +1,5 @@
+import StateManager from "./stateManager.js";
+
 async function getPlanetsWithReptileResidents() {
   const baseUrl = "https://swapi.dev/api";
   const speciesUrl = `${baseUrl}/species`;
@@ -49,12 +51,18 @@ async function getPlanetsWithReptileResidents() {
   return result;
 }
 
-getPlanetsWithReptileResidents().then((planets) => {
+const stateManager = new StateManager({ planets: [] });
+
+stateManager.subscribe((state) => {
   const planetList = document.getElementById("planet-list");
   planetList.innerHTML = "";
-  planets.forEach((planet) => {
+  state.planets.forEach((planet) => {
     const li = document.createElement("li");
-    li.textContent = JSON.stringify(planet);
+    li.textContent = planet.name;
     planetList.appendChild(li);
   });
+});
+
+getPlanetsWithReptileResidents().then((planets) => {
+  stateManager.setState({ planets });
 });
