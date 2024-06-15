@@ -1,0 +1,33 @@
+# Node modules
+node_modules/
+
+# Logs
+logs
+*.log
+
+# Compiled output
+dist/
+build/
+
+# Dependency directories
+.jest/
+
+# Environment variables
+.env
+
+# Editor/IDE settings
+.vscode/
+.idea/
+
+# macOS
+.DS_Store
+
+# Babel cache
+.cache/
+
+# npm/Yarn lock files
+package-lock.json
+yarn.lock
+
+# Ignore Babel output
+babel.config.json

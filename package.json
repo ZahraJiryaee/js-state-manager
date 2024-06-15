@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "description": "handling promises in JavaScript with a custom-built state manager. ",
   "main": "index.js",
-  "scripts": {},
+  "type": "module",
+  "scripts": {
+    "test": "node src/test.js"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC"
