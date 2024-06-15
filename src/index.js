@@ -43,12 +43,18 @@ async function getPlanetsWithReptileResidents() {
   const promises = planets.map(async (planet) => {
     const hasReptiles = await hasReptileResidents(planet);
     if (hasReptiles) {
-      return planet;
+      const filmTitles = await Promise.all(
+        planet.films.map(async (filmUrl) => {
+          const response = await fetch(filmUrl);
+          const filmData = await response.json();
+          return filmData.title;
+        })
+      );
+      return { ...planet, filmTitles };
     }
   });
 
-  const result = (await Promise.all(promises)).filter(Boolean);
-  return result;
+  return (await Promise.all(promises)).filter(Boolean);
 }
 
 const stateManager = new StateManager({ planets: [] });
@@ -58,7 +64,54 @@ stateManager.subscribe((state) => {
   planetList.innerHTML = "";
   state.planets.forEach((planet) => {
     const li = document.createElement("li");
-    li.textContent = planet.name;
+
+    const createdDate = new Date(planet.created);
+    const formattedDate = createdDate.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "2-digit",
+    });
+
+    li.innerHTML = `
+    <div class="hidden md:flex justify-between items-center m-5 p-5 bg-[#27262a] text-white rounded-md">
+        <div>
+            <p class="mb-2 text-[#f1e04090]">${createdDate.toLocaleDateString()}</p>
+            <div class="flex gap-3">
+                <div class="w-[3rem] h-[3rem] rounded-lg bg-[#403d46] flex justify-center items-center">
+                    <i class="fa-solid fa-earth-americas" style="color: #f1e040; font-size: 2rem"></i>
+                </div>
+                <div>
+                    <p>${planet.name}</p>
+                    <p class="text-[#ffffff85]">${planet.filmTitles.join(
+                      ", "
+                    )}</p>
+                </div>
+            </div>
+        </div>
+        <div class="flex flex-col items-end">
+            <p class="text-[#f1e04090]">${formattedDate}</p>
+            <p class="text-[#ffffff85]">${planet.climate}</p>
+        </div>
+    </div>
+    <div class="block md:hidden m-5 p-5 bg-[#403f45] text-white rounded-md">
+        <div class="flex justify-between items-center w-100">
+            <div>
+                <p class="mb-2 text-[#f1e04090]">${createdDate.toLocaleDateString()}</p>
+                <div class="flex gap-3">
+                    <div class="w-[3rem] h-[3rem] flex justify-center items-center rounded-full p-1 from-[#7f7e81] to-[#605f64] bg-gradient-to-b">
+                        B
+                    </div>
+                    <div>
+                        <p>${planet.name}</p>
+                        <p class="text-[#ffffff85]">${planet.climate}</p>
+                    </div>
+                </div>
+            </div>
+            <i class="fa-solid fa-earth-americas" style="color: #f1e040; font-size: 2rem"></i>
+        </div>
+        <p class="mt-2 text-[#ffffff90]">${planet.filmTitles.join(", ")}</p>
+    </div>
+`;
     planetList.appendChild(li);
   });
 });
